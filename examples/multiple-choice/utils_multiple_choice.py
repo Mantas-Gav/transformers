@@ -535,8 +535,8 @@ def convert_examples_to_features(
             else:
                 text_b = example.question + " " + ending
 
-            tokens_a = tokenizer.tokenize(text_a)[:128] # im afraid i might be chopping off the end here
-            tokens_b = tokenizer.tokenize(text_b)[:(512 - len(tokens_a))] #whatever is left
+            tokens_b = tokenizer.tokenize(text_b)[:128] # im afraid i might be chopping off the end here
+            tokens_a = tokenizer.tokenize(text_a)[:(512 - len(tokens_b))] #whatever is left
             logger.info("TOKEN INFO: " + str(len(tokens_a)) + " " + str(len(tokens_b)))
 
             inputs = tokenizer.encode_plus(
