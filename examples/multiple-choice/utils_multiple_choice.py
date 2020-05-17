@@ -526,7 +526,7 @@ def convert_examples_to_features(
     for (ex_index, example) in tqdm.tqdm(enumerate(examples), desc="convert examples to features"):
         if ex_index % 10000 == 0:
             logger.info("Writing example %d of %d" % (ex_index, len(examples)))
-            logger.info("total chopped examples: %d" % (chopped))
+            logger.info("total chopped examples: %d" % (chopped_count))
         choices_inputs = []
         for ending_idx, (context, ending) in enumerate(zip(example.contexts, example.endings)):
             text_a = context
