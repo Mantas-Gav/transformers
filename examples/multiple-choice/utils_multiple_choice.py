@@ -528,15 +528,21 @@ def convert_examples_to_features(
         choices_inputs = []
         for ending_idx, (context, ending) in enumerate(zip(example.contexts, example.endings)):
             text_a = context
+
             if example.question.find("_") != -1:
                 # this is for cloze question
                 text_b = example.question.replace("_", ending)
             else:
                 text_b = example.question + " " + ending
 
+            tokens_a = tokenizer.tokenize(text_a)[:128] # im afraid i might be chopping off the end here
+            tokens_b = tokenizer.tokenize(text_b)[:(512 - len(tokens_a))] #whatever is left
+            logger.info("TOKEN INFO: " + str(len(tokens_a)) + " " + str(len(tokens_b)))
+
             inputs = tokenizer.encode_plus(
-                text_a,
-                text_b,
+                tokens_a,
+                tokens_b,
+                is_pretokenized=True,
                 add_special_tokens=True,
                 max_length=max_length,
                 pad_to_max_length=True,
@@ -547,7 +553,7 @@ def convert_examples_to_features(
                     "Attention! you are cropping tokens (swag task is ok). "
                     "If you are training ARC and RACE and you are poping question + options,"
                     "you need to try to use a bigger max seq length!"
-                )
+                ) # i hate this log, but leaving it to see if I'm still screwing up the thing
 
             choices_inputs.append(inputs)
 
