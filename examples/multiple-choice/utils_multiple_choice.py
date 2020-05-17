@@ -545,7 +545,6 @@ def convert_examples_to_features(
 
             tokens_b = tokens_b_full[:128] # max question/answer length is 128
             tokens_a = tokens_a_full[:(512 - len(tokens_b))] #whatever is left
-            logger.info("TOKEN INFO: " + str(len(tokens_a)) + " " + str(len(tokens_b)))
 
             inputs = tokenizer.encode_plus(
                 tokens_a,
