@@ -521,10 +521,12 @@ def convert_examples_to_features(
 
     label_map = {label: i for i, label in enumerate(label_list)}
 
+    chopped_count = 0
     features = []
     for (ex_index, example) in tqdm.tqdm(enumerate(examples), desc="convert examples to features"):
         if ex_index % 10000 == 0:
             logger.info("Writing example %d of %d" % (ex_index, len(examples)))
+            logger.info("total chopped examples: %d" % (chopped))
         choices_inputs = []
         for ending_idx, (context, ending) in enumerate(zip(example.contexts, example.endings)):
             text_a = context
@@ -535,8 +537,14 @@ def convert_examples_to_features(
             else:
                 text_b = example.question + " " + ending
 
-            tokens_b = tokenizer.tokenize(text_b)[:128] # im afraid i might be chopping off the end here
-            tokens_a = tokenizer.tokenize(text_a)[:(512 - len(tokens_b))] #whatever is left
+            tokens_b_full = tokenizer.tokenize(text_b)
+            tokens_a_full = tokenizer.tokenize(text_a)
+
+            if (len(tokens_b_full) + len(tokens_a_full) > 512):
+                chopped_count += 1
+
+            tokens_b = tokens_b_full[:128] # max question/answer length is 128
+            tokens_a = tokens_a_full[:(512 - len(tokens_b))] #whatever is left
             logger.info("TOKEN INFO: " + str(len(tokens_a)) + " " + str(len(tokens_b)))
 
             inputs = tokenizer.encode_plus(
@@ -548,12 +556,6 @@ def convert_examples_to_features(
                 pad_to_max_length=True,
                 return_overflowing_tokens=True,
             )
-            if "num_truncated_tokens" in inputs and inputs["num_truncated_tokens"] > 0:
-                logger.info(
-                    "Attention! you are cropping tokens (swag task is ok). "
-                    "If you are training ARC and RACE and you are poping question + options,"
-                    "you need to try to use a bigger max seq length!"
-                ) # i hate this log, but leaving it to see if I'm still screwing up the thing
 
             choices_inputs.append(inputs)
 
