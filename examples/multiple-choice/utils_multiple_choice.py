@@ -522,11 +522,13 @@ def convert_examples_to_features(
     label_map = {label: i for i, label in enumerate(label_list)}
 
     chopped_count = 0
+    total_chopped_tokens = 0
     features = []
     for (ex_index, example) in tqdm.tqdm(enumerate(examples), desc="convert examples to features"):
         if ex_index % 10000 == 0:
             logger.info("Writing example %d of %d" % (ex_index, len(examples)))
-            logger.info("total chopped examples: %d" % (chopped_count))
+            avg_overflow = total_chopped_tokens / chopped_count
+            logger.info("total chopped examples: %d, with average overflow: %d" % (chopped_count, avg_overflow))
         choices_inputs = []
         for ending_idx, (context, ending) in enumerate(zip(example.contexts, example.endings)):
             text_a = context
@@ -540,8 +542,10 @@ def convert_examples_to_features(
             tokens_b_full = tokenizer.tokenize(text_b)
             tokens_a_full = tokenizer.tokenize(text_a)
 
-            if (len(tokens_b_full) + len(tokens_a_full) > 512):
+            overflow_amount = len(tokens_b_full) + len(tokens_a_full) - 512
+            if (overflow_amount > 0):
                 chopped_count += 1
+                total_chopped_tokens += overflow_amount
 
             tokens_b = tokens_b_full[:128] # max question/answer length is 128
             tokens_a = tokens_a_full[:(512 - len(tokens_b))] #whatever is left
