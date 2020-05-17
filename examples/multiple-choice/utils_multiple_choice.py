@@ -527,7 +527,7 @@ def convert_examples_to_features(
     for (ex_index, example) in tqdm.tqdm(enumerate(examples), desc="convert examples to features"):
         if ex_index % 10000 == 0:
             logger.info("Writing example %d of %d" % (ex_index, len(examples)))
-            avg_overflow = total_chopped_tokens / chopped_count
+            avg_overflow = (total_chopped_tokens / chopped_count) if (chopped_count > 0) else 0
             logger.info("total chopped examples: %d, with average overflow: %d" % (chopped_count, avg_overflow))
         choices_inputs = []
         for ending_idx, (context, ending) in enumerate(zip(example.contexts, example.endings)):
